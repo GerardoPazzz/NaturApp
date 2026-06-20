@@ -1,0 +1,62 @@
+import { useState, useEffect, useCallback } from 'react';
+import ApiService from '../services/apiService';
+import StorageService from '../services/storageService';
+import { Product } from '../models/Product';
+
+export function useProducts() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [category, setCategory] = useState('todos');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const cat = category === 'todos' ? null : category;
+      const data = await ApiService.getProducts(cat);
+      const mapped = data.map(p => Product.fromJSON(p));
+      setProducts(mapped);
+      await StorageService.saveLastCategory(category);
+    } catch (err) {
+      setError('No se pudieron cargar los productos');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [category]);
+
+  const search = useCallback(async (query) => {
+    if (!query.trim()) {
+      loadProducts();
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await ApiService.searchProducts(query);
+      setProducts(data.map(p => Product.fromJSON(p)));
+    } catch (err) {
+      setError('Error en la búsqueda');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [loadProducts]);
+
+  useEffect(() => {
+    StorageService.getLastCategory().then(cat => setCategory(cat));
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadProducts();
+  }, [loadProducts]);
+
+  return {
+    products, loading, error,
+    category, setCategory,
+    searchQuery, setSearchQuery,
+    search, refresh: loadProducts,
+  };
+}
