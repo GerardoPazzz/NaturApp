@@ -1,56 +1,107 @@
-# Welcome to your Expo app 👋
+# NaturApp 🌿
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicación móvil de productos naturales desarrollada con **Expo** y **React Native**, siguiendo una **Arquitectura en Capas** combinada con el patrón **MVVM**.
 
-## Get started
+## Arquitectura del Proyecto
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+NaturApp/
+├── app/                    # Navegación (Expo Router - File-based routing)
+│   ├── _layout.js          # Root Layout con providers globales
+│   ├── index.js            # Redirige a /home
+│   ├── (tabs)/             # Navegación por tabs
+│   │   ├── _layout.js      # Configuración de tabs
+│   │   ├── home.js         # Pantalla principal (productos)
+│   │   ├── cart.js         # Carrito de compras
+│   │   ├── orders.js       # Historial de pedidos
+│   │   └── profile.js      # Perfil y preferencias
+│   └── product/[id].js     # Detalle de producto
+├── src/
+│   ├── models/             # 📦 CAPA MODELO (Dominio)
+│   │   ├── Product.js       # Entidad Producto
+│   │   ├── CartItem.js      # Entidad Item del Carrito
+│   │   └── Order.js         # Entidad Pedido
+│   ├── services/           # 💾 CAPA DE DATOS (Persistencia)
+│   │   ├── databaseService.js   # SQLite (datos locales estructurados)
+│   │   ├── storageService.js    # AsyncStorage (datos simples)
+│   │   └── apiService.js        # API REST (datos remotos)
+│   ├── viewmodels/         # ⚙️ CAPA LÓGICA (ViewModel)
+│   │   ├── useProducts.js   # Lógica de productos
+│   │   ├── useCart.js       # Lógica del carrito
+│   │   ├── useOrders.js     # Lógica de pedidos
+│   │   └── useProfile.js    # Lógica de perfil
+│   ├── context/            # 🔄 ESTADO GLOBAL (React Context)
+│   │   ├── CartContext.js   # Carrito compartido
+│   │   ├── OrdersContext.js # Pedidos compartidos
+│   │   └── ThemeContext.js  # Tema claro/oscuro
+│   └── components/         # 🎨 COMPONENTES REUTILIZABLES
+│       ├── ProductCard.js   # Tarjeta de producto
+│       ├── CartItemRow.js   # Fila del carrito
+│       └── CategoryChip.js  # Chip de categoría
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Patrón MVVM Adaptado
 
-### Other setup steps
+### Modelo (Domain Layer)
+Representa las entidades del negocio. Define la estructura de datos y la lógica intrinsic de cada entidad.
+- `Product.js` - Producto con métodos como `getFormattedPrice()`, `isAvailable()`
+- `CartItem.js` - Item del carrito con método `getSubtotal()`
+- `Order.js` - Pedido con método `getStatusColor()`, `getFormattedDate()`
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### ViewModel (Business Logic Layer)
+Custom Hooks de React que encapsulan:
+- Estado de la vista
+- Lógica de negocio y validaciones
+- Coordinación entre servicios de datos
+- Transformación de datos (JSON → Entidades)
 
-## Learn more
+### View (Presentation Layer)
+Pantallas y componentes que:
+- Usan ViewModels para obtener datos
+- No conocen detalles de persistencia
+- Renderizan UI basándose en el estado del ViewModel
 
-To learn more about developing your project with Expo, look at the following resources:
+## Persistencia de Datos
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+| Servicio       | Tecnología      | Uso                          |
+|----------------|-----------------|------------------------------|
+| `databaseService` | SQLite         | Carrito, favoritos (CRUD)   |
+| `storageService`  | AsyncStorage    | Token, preferencias, perfil  |
+| `apiService`      | REST API        | Productos, pedidos (futuro)  |
 
-## Join the community
+## Contextos Globales
 
-Join our community of developers creating universal apps.
+- **CartContext**: Estado del carrito compartido entre Home, Cart y ProductDetail
+- **OrdersContext**: Pedidos compartidos para actualización en tiempo real
+- **ThemeContext**: Tema claro/oscuro aplicado a toda la app
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Ejecutar el Proyecto
+
+```bash
+# Instalar dependencias
+npm install
+
+# Ejecutar en desarrollo
+npm start
+
+# O usar Expo Go en tu dispositivo móvil
+```
+
+## Estructura de Carpetas Explicada
+
+| Carpeta           | Responsabilidad                          |
+|-------------------|------------------------------------------|
+| `app/`            | Navegación y pantallas (Expo Router)    |
+| `src/models/`     | Entidades de dominio (Product, Cart, Order) |
+| `src/services/`   | Acceso a datos (SQLite, AsyncStorage, API) |
+| `src/viewmodels/` | Hooks con lógica de negocio              |
+| `src/context/`    | Estado global compartido                 |
+| `src/components/` | Componentes UI reutilizables             |
+
+## Tecnologias
+
+- **Expo SDK 56** - Framework
+- **Expo Router** - Navegación file-based
+- **Expo SQLite** - Base de datos local
+- **AsyncStorage** - Almacenamiento simple
+- **React Native** - UI Framework
